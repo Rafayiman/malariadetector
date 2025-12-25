@@ -16,7 +16,7 @@ export default function MalariaDetector() {
   const [error, setError] = useState<string | null>(null);
 
   // IMPORTANT: Change this to your Render.com URL after deployment
-  const API_URL = 'http://localhost:5000/api/predict';
+  const API_URL = 'https://malaria-detector-api-production-2b3f.up.railway.app/api/predict';
   // After deploying to Render, change to:
   // const API_URL = 'https://your-app-name.onrender.com/api/predict';
 
