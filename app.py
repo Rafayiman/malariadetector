@@ -7,6 +7,7 @@ import torch.nn as nn
 from PIL import Image
 import io
 import torchvision.transforms as transforms
+from torchvision import models
 import os
 from datetime import datetime
 import base64
@@ -22,52 +23,38 @@ from reportlab.lib.enums import TA_CENTER
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# IMPORTANT: Replace this with YOUR actual model architecture
-class MalariaModel(nn.Module):
-    def __init__(self):
-        super(MalariaModel, self).__init__()
-        # Example CNN architecture - REPLACE with your actual architecture
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(128 * 8 * 8, 256),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(256, 1),
-            nn.Sigmoid()
-        )
-    
-    def forward(self, x):
-        x = self.features(x)
-        x = self.classifier(x)
-        return x
+# Load pretrained ResNet50 model
+from torchvision import models
 
-# Load model
 MODEL_PATH = 'public/malaria_model.pth'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Loading model...")
 try:
-    model = MalariaModel().to(device)
+    # Create ResNet50 architecture
+    model = models.resnet50(pretrained=False)
+    
+    # Modify final layer for binary classification
+    num_features = model.fc.in_features
+    model.fc = nn.Sequential(
+        nn.Linear(num_features, 256),
+        nn.ReLU(),
+        nn.Dropout(0.5),
+        nn.Linear(256, 1),
+        nn.Sigmoid()
+    )
+    
+    # Load trained weights
     model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+    model.to(device)
     model.eval()
     print("✓ Model loaded successfully!")
 except Exception as e:
     print(f"✗ Error loading model: {str(e)}")
     model = None
 
-# Image preprocessing
+# Image preprocessing for ResNet50
 transform = transforms.Compose([
-    transforms.Resize((64, 64)),
+    transforms.Resize((224, 224)),  # ResNet50 expects 224x224
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
