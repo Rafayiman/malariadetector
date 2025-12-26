@@ -27,6 +27,7 @@ import {
   analyzeWithAI,
   saveToHistory,
   getHistory,
+  downloadReport,
   AnalysisResult,
   PatientInfo,
   AnalysisHistoryItem,
@@ -142,6 +143,24 @@ const DetectionPage = () => {
     setPatientInfo({});
     setProgress(0);
   }, []);
+
+  const handleDownloadReport = useCallback(async () => {
+    if (!results || !previewUrl) return;
+    
+    try {
+      await downloadReport(previewUrl, results, patientInfo);
+      toast({
+        title: "Report Downloaded",
+        description: "PDF report has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to download report. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [results, previewUrl, patientInfo]);
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -381,6 +400,7 @@ const DetectionPage = () => {
                   imageUrl={previewUrl}
                   onSave={handleSave}
                   onNewAnalysis={handleNewAnalysis}
+                  onDownloadReport={handleDownloadReport}
                 />
               ) : (
                 <Card variant="elevated" className="h-full flex flex-col items-center justify-center min-h-[500px] text-center p-8">

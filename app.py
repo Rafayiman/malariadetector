@@ -21,7 +21,13 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+# CORS configuration - allows frontend to connect
+# For development: allows all origins
+# For production: set ALLOWED_ORIGINS environment variable
+allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*')
+if allowed_origins != '*':
+    allowed_origins = allowed_origins.split(',')
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 # Load pretrained ResNet50 model
 from torchvision import models
@@ -33,14 +39,15 @@ try:
     # Create ResNet50 architecture
     model = models.resnet50(pretrained=False)
     
-    # Modify final layer for binary classification
+    # Modify final layer to match the saved weights architecture
+    # The saved model uses 512 hidden units and 2-class output
     num_features = model.fc.in_features
     model.fc = nn.Sequential(
-        nn.Linear(num_features, 256),
-        nn.ReLU(),
-        nn.Dropout(0.5),
-        nn.Linear(256, 1),
-        nn.Sigmoid()
+        nn.ReLU(),  # Layer 0
+        nn.Linear(num_features, 512),  # Layer 1: 2048 -> 512
+        nn.ReLU(),  # Layer 2
+        nn.Dropout(0.5),  # Layer 3
+        nn.Linear(512, 2),  # Layer 4: 512 -> 2 (two-class classification)
     )
     
     # Load trained weights
@@ -91,16 +98,18 @@ def predict():
         
         with torch.no_grad():
             output = model(input_tensor)
-            probability = output.item()
+            # Apply softmax to get probabilities for 2-class output
+            probabilities = torch.nn.functional.softmax(output, dim=1)
+            positive_prob = probabilities[0][1].item()  # Probability of positive class
         
-        is_infected = probability > 0.5
-        confidence = probability if is_infected else 1 - probability
+        is_infected = positive_prob > 0.5
+        confidence = positive_prob if is_infected else 1 - positive_prob
         
         result = {
             'success': True,
             'prediction': 'positive' if is_infected else 'negative',
             'confidence': round(confidence * 100, 2),
-            'probability': round(probability, 4),
+            'probability': round(positive_prob, 4),
             'parasiteCount': int(confidence * 50) if is_infected else 0,
             'severity': 'high' if (is_infected and confidence > 0.8) else 
                        'medium' if (is_infected and confidence > 0.6) else

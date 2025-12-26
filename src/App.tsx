@@ -7,6 +7,10 @@ import LandingPage from "./pages/LandingPage";
 import DetectionPage from "./pages/DetectionPage";
 import HistoryPage from "./pages/HistoryPage";
 import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import DocumentationPage from "./pages/DocumentationPage";
 import NotFound from "./pages/NotFound";
 import './App.css';
 
@@ -24,6 +28,10 @@ function App() {
             <Route path="/detect" element={<DetectionPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+            <Route path="/documentation" element={<DocumentationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

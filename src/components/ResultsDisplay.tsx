@@ -25,6 +25,7 @@ interface ResultsDisplayProps {
   imageUrl: string;
   onSave: () => void;
   onNewAnalysis: () => void;
+  onDownloadReport?: () => void;
   className?: string;
 }
 
@@ -33,6 +34,7 @@ export function ResultsDisplay({
   imageUrl,
   onSave,
   onNewAnalysis,
+  onDownloadReport,
   className,
 }: ResultsDisplayProps) {
   const getSeverityColor = (severity: string) => {
@@ -258,7 +260,7 @@ export function ResultsDisplay({
           <Save className="h-4 w-4" />
           Save Result
         </Button>
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" onClick={onDownloadReport}>
           <Download className="h-4 w-4" />
           Download Report
         </Button>
