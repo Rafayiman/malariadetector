@@ -21,13 +21,22 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
 app = Flask(__name__)
+
 # CORS configuration - allows frontend to connect
 # For development: allows all origins
 # For production: set ALLOWED_ORIGINS environment variable
 allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*')
 if allowed_origins != '*':
     allowed_origins = allowed_origins.split(',')
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+
+# Configure CORS - Apply to ALL routes
+CORS(app, 
+     origins=allowed_origins,
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"],
+     supports_credentials=False,
+     expose_headers=["Content-Type"],
+     max_age=3600)
 
 # Load pretrained ResNet50 model
 from torchvision import models
@@ -65,6 +74,22 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    if origin:
+        if allowed_origins == '*':
+            response.headers['Access-Control-Allow-Origin'] = '*'
+        elif isinstance(allowed_origins, list) and origin in allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+        elif origin == allowed_origins:
+            response.headers['Access-Control-Allow-Origin'] = origin
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Max-Age'] = '3600'
+    return response
 
 @app.route('/', methods=['GET'])
 def home():
