@@ -40,7 +40,7 @@ export interface PatientInfo {
 
 // Get API URL from environment variable (required for production)
 // Remove trailing slash to prevent double slashes
-const API_URL = (import.meta.env.VITE_API_URL as string || 'https://web-production-d5de.up.railway.app').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL as string || 'https://web-production-59b2.up.railway.app').replace(/\/$/, '');
 
 console.log('API_URL configured as:', API_URL);
 
