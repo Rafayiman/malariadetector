@@ -38,8 +38,13 @@ export interface PatientInfo {
   notes?: string;
 }
 
-// Get API URL from environment variable or use Railway URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://malaria-detector-api-production-2b3f.up.railway.app';
+// Get API URL from environment variable (required for production)
+// Remove trailing slash to prevent double slashes
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
+if (!API_URL) {
+  console.error('VITE_API_URL is not set! Please configure it in Vercel environment variables.');
+}
 
 // Real analysis function - calls Railway backend
 export const analyzeWithAI = async (imageFile: File): Promise<AnalysisResult> => {
