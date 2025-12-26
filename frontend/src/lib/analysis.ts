@@ -40,11 +40,9 @@ export interface PatientInfo {
 
 // Get API URL from environment variable (required for production)
 // Remove trailing slash to prevent double slashes
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL as string || 'https://web-production-d5de.up.railway.app').replace(/\/$/, '');
 
-if (!API_URL) {
-  console.error('VITE_API_URL is not set! Please configure it in Vercel environment variables.');
-}
+console.log('API_URL configured as:', API_URL);
 
 // Real analysis function - calls Railway backend
 export const analyzeWithAI = async (imageFile: File): Promise<AnalysisResult> => {
